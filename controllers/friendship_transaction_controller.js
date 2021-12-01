@@ -1,4 +1,5 @@
 const FriendshipTransaction = require('../models/friendship_transaction');
+const Friendship = require('../models/friendship');
 const User = require('../models/user');
 const utils = require('../helpers/utils');
 
@@ -20,28 +21,66 @@ module.exports = {
             }
 
             if (proceed) {
-                let newRequest = FriendshipTransaction({
-                    "token": utils.makeToken({
-                        "label": "fst"
-                    }),
-                    "from": from,
-                    "to": to,
-                    "type": type,
-                    "actionTime": "hi",
+                // @allready friend or not
+
+                let checkFriend = await Friendship.find({
+                    'person' : from,
+                    'friend' : to
                 });
 
+                let checkFriend2 = await Friendship.find({
+                    'person' : to,
+                    'friend' : from
+                });
 
+                if(checkFriend.length && checkFriend2.length === 0){
 
-                await newRequest.save();
+                    //@ check pending request
 
-                res.send({
-                    "type": "success",
-                    "data": newRequest,
-                })
+                    let checkPendingReq = await FriendshipTransaction.find({
+                        'from' : from,
+                        'to' : to
+                    });
+    
+                    let checkPendingReq2 = await FriendshipTransaction.find({
+                        'from' : to,
+                        'to' : from
+                    });
 
+                    if(checkPendingReq.length && checkPendingReq2.length === 0) {
 
+                        let newRequest = FriendshipTransaction({
+                            "token": utils.makeToken({
+                                "label": "fst"
+                            }),
+                            "from": from,
+                            "to": to,
+                            "type": type,
+                            "actionTime": "hi",
+                        });
+        
+        
+        
+                        await newRequest.save();
+        
+                        res.send({
+                            "type": "success",
+                            "data": newRequest,
+                        })
+                        
+                    }
+                    else{
+                        res.send("already pending request")
+                    }
+
+                }
+                else{
+                    res.send("Already friend")
+                }
             }
         } catch (error) {
+
+            res.send(error);
 
         }
 
