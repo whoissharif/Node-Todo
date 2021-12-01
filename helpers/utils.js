@@ -1,5 +1,7 @@
 const moment = require('moment');
 
+const Session = require('../models/session');
+
 // @returns a random number by given length - Author: Istiaq Hasan
 const numRand = (length) => {
     let result = [];
@@ -33,4 +35,24 @@ const unixMS = () => {
     return moment().format('x');
 }
 
-module.exports = { numRand, stringRand, makeToken, unixMS }
+const authinticate = async (usertoken, sessiontoken) => {
+   try {
+    let checkSession = await Session.find(
+        { 
+        userToken: usertoken, 
+        sessionToken : sessiontoken,
+        sessionEndedAt: "hi"
+        }
+    )
+
+    if(checkSession.length === 1 ){
+        return true;
+    }else{
+        return false;
+    }
+   } catch (error) {
+       console.log(error);
+   }
+}
+
+module.exports = { numRand, stringRand, makeToken, unixMS, authinticate }
