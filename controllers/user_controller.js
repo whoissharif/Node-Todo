@@ -1,5 +1,8 @@
 const User = require('../models/user');
+const Session = require('../models/session');
 const argon2 = require('argon2');
+const utils = require('../helpers/utils');
+const session = require('../models/session');
 
 module.exports = {
     createAccount: async (req, res) => {
@@ -8,17 +11,11 @@ module.exports = {
         }
 
         let proceed = true;
-
-
-
         const { username, password, firstName, lastName, birthDate } = req.body;
         const hashPass = await argon2.hash(password);
         let userCheck = await User.find({
             username: username
         });
-
-
-
 
         if (userCheck.length !== 0) {
             proceed = false;
@@ -29,9 +26,11 @@ module.exports = {
                 }
             })
         }
-
         if (proceed) {
             let newUser = new User({
+                "userToken": utils.makeToken({
+                    "label": "user"
+                }),
                 "username": username,
                 "password": hashPass,
                 "firstName": firstName,
@@ -58,8 +57,6 @@ module.exports = {
                     )
 
                 }
-
-
                 console.log(userCheck);
             } catch (e) {
                 res.send(
@@ -69,8 +66,6 @@ module.exports = {
                     }
                 )
             }
-
-
         }
 
 
@@ -111,20 +106,32 @@ module.exports = {
                     })
                 }
             }
-
             if (proceed) {
+
+                let session = new Session(
+                    {
+                        "sessionToken": utils.makeToken({
+                            "label": "sToken"
+                        }),
+                        "userToken": checkUser[0].userToken,
+                        "ipAddress": req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+                        "sessionEndedAt": "hi",
+                    }
+                );
+
+                await session.save();
 
                 res.send({
                     "type": "success",
+
                     "data": {
-                        "msg": `Log in successfully as ${username}`
+                        "msg": `Log in successfully as ${username}`,
+                        "userToken": checkUser[0].userToken,
+                        "sessionToken": session.sessionToken,
                     }
                 })
 
             }
-
-
-
         } catch (e) {
             res.send(
                 {
