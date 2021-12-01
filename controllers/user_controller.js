@@ -3,6 +3,7 @@ const Session = require('../models/session');
 const argon2 = require('argon2');
 const utils = require('../helpers/utils');
 const session = require('../models/session');
+const moment = require('moment');
 
 module.exports = {
     createAccount: async (req, res) => {
@@ -141,4 +142,45 @@ module.exports = {
             )
         }
     },
+
+    logout: async (req, res) => {
+        try {
+            let proceed = true;
+            // const { postContent, postPrivacy } = req.body;
+            const { usertoken, sessiontoken } = req.headers;
+
+            if (await utils.authinticate(usertoken, sessiontoken) === false) {
+                proceed = false;
+                res.send({
+                    "type": "error",
+                    "data": {
+                        "msg": "You are not logged in"
+                    },
+                })
+            }
+
+            if (proceed) {
+                await Session.findOneAndUpdate(
+                    { 'sessionToken': sessiontoken },
+                    {
+                        $set: {
+                            'sessionEndedAt': moment.utc().format('YYYY-MM-DD HH:mm:ss')
+                        }
+                    },
+                    { new: true }
+                );
+
+                res.send(
+                    {
+                        "type": "success",
+                        "data": {
+                            "msg": "You are logged out"
+                        },
+                    }
+                )
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
 }
