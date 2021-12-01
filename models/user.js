@@ -12,6 +12,9 @@ const userSchema = mongoose.Schema({
     },
     'lastName': {
         type: String
+    },
+    'birthDate': {
+        type: String
     }
 }, {
     timestamps: true,

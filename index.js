@@ -13,7 +13,7 @@ db.on('error', (error) => console.error(error));
 db.once ('open', () => console.log(`Mongo Connected. Database: job-portal. Port: 27017`));
 
 
-app.use('/api', require('./route'))
+app.use('/api', require('./routes'))
 
 app.listen(4000,()=>{
     console.log('server running on port : 5000')
