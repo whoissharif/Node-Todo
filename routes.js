@@ -16,5 +16,7 @@ router.post('/send/request', friendship_transaction_controller.sendFriendRequest
 
 router.get('/get/allRequest',friendship_transaction_controller.allFriendRequest);
 
+router.get('/get/allRequest/:userToken',friendship_transaction_controller.specificFriendRequest);
+
 
 module.exports = router;
