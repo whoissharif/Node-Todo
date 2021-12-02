@@ -24,30 +24,30 @@ module.exports = {
                 // @allready friend or not
 
                 let checkFriend = await Friendship.find({
-                    'person' : from,
-                    'friend' : to
+                    'person': from,
+                    'friend': to
                 });
 
                 let checkFriend2 = await Friendship.find({
-                    'person' : to,
-                    'friend' : from
+                    'person': to,
+                    'friend': from
                 });
 
-                if(checkFriend.length && checkFriend2.length === 0){
+                if (checkFriend.length === 0 && checkFriend2.length === 0) {
 
                     //@ check pending request
 
                     let checkPendingReq = await FriendshipTransaction.find({
-                        'from' : from,
-                        'to' : to
-                    });
-    
-                    let checkPendingReq2 = await FriendshipTransaction.find({
-                        'from' : to,
-                        'to' : from
+                        'from': from,
+                        'to': to
                     });
 
-                    if(checkPendingReq.length && checkPendingReq2.length === 0) {
+                    let checkPendingReq2 = await FriendshipTransaction.find({
+                        'from': to,
+                        'to': from
+                    });
+
+                    if (checkPendingReq.length === 0 && checkPendingReq2.length === 0) {
 
                         let newRequest = FriendshipTransaction({
                             "token": utils.makeToken({
@@ -57,24 +57,25 @@ module.exports = {
                             "to": to,
                             "type": type,
                             "actionTime": "hi",
+
                         });
-        
-        
-        
+
+
+
                         await newRequest.save();
-        
+
                         res.send({
                             "type": "success",
                             "data": newRequest,
                         })
-                        
+
                     }
-                    else{
+                    else {
                         res.send("already pending request")
                     }
 
                 }
-                else{
+                else {
                     res.send("Already friend")
                 }
             }
@@ -91,15 +92,15 @@ module.exports = {
             let allReq = await FriendshipTransaction.find();
 
             let records = [];
-            
-            for(let i = 0; i < allReq.length ; i++){
+
+            for (let i = 0; i < allReq.length; i++) {
 
                 let thisItem = allReq[i];
 
                 let object = {};
 
                 let userDetail = await User.find({
-                    'userToken' : thisItem.from
+                    'userToken': thisItem.from
                 });
 
                 object.token = userDetail[0].userToken;
@@ -132,11 +133,11 @@ module.exports = {
             let userToken = req.params.userToken;
 
             let allReq = await FriendshipTransaction.find({
-                "token" : userToken
+                "token": userToken
             });
 
             // let records = [];
-            
+
             // for(let i = 0; i < allReq.length ; i++){
 
             //     let thisItem = allReq[i];
@@ -163,10 +164,58 @@ module.exports = {
 
             });
 
-            
+
 
         } catch (error) {
 
         }
-    }
+    },
+    acceptFriendRequest: async (req, res) => {
+        try {
+            let proceed = true;
+            const { from, to, status } = req.body;
+            const { usertoken, sessiontoken } = req.headers;
+
+            if (await utils.authinticate(usertoken, sessiontoken) === false) {
+                proceed = false;
+                res.send({
+                    "type": "error",
+                    "data": {
+                        "msg": "Not logged in"
+                    },
+                })
+            }
+
+            if (proceed) {
+                let newFriend = Friendship({
+                    "person": to,
+                    "friend": from,
+                    "status": status,
+                })
+                
+                await FriendshipTransaction.findOneAndUpdate(
+                    { 'from': from },
+                    {
+                        $set: {
+                            'actionTime': moment.utc().format('YYYY-MM-DD HH:mm:ss')
+                        }
+                    },
+                    { new: true }
+                );
+
+                await newFriend.save();
+
+                res.send({
+                    "type": "success",
+                    "data": newRequest,
+                })
+
+            }
+        } catch (error) {
+
+            res.send(error);
+
+        }
+
+    },
 }

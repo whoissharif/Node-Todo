@@ -14,6 +14,8 @@ router.post('/account/logout', userController.logout);
 
 router.post('/send/request', friendship_transaction_controller.sendFriendRequest);
 
+router.post('/request/accept', friendship_transaction_controller.acceptFriendRequest);
+
 router.get('/get/allRequest',friendship_transaction_controller.allFriendRequest);
 
 router.get('/get/allRequest/:userToken',friendship_transaction_controller.specificFriendRequest);

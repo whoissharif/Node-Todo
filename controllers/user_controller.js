@@ -46,7 +46,7 @@ module.exports = {
                     res.send(
                         {
                             "type": "success",
-                            "data": "Added"
+                            "data": newUser
                         }
                     )
                 } else {
