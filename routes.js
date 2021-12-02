@@ -10,6 +10,10 @@ router.post('/account/login', userController.login);
 
 router.post('/account/post/create', post_controller.createPost);
 
+router.post('/account/post/react', post_controller.react);
+
+router.post('/account/post/unreact', post_controller.unReact);
+
 router.post('/account/logout', userController.logout);
 
 router.post('/send/request', friendship_transaction_controller.sendFriendRequest);

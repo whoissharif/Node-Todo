@@ -48,11 +48,11 @@ module.exports = {
 
     },
 
-    reaction: async (req, res) => {
+    react: async (req, res) => {
         try {
             let proceed = true;
             let reactionList = ["Like","Love","Haha"];
-            const { reaction, postToken, PosterToken, status } = req.body;
+            const { reaction, postToken, posterToken } = req.body;
             const { usertoken, sessiontoken } = req.headers;
 
             if (await utils.authinticate(usertoken, sessiontoken) === false) {
@@ -64,7 +64,6 @@ module.exports = {
                     },
                 })
             }
-
 
             let hasReaction = reactionList.includes(reaction);
 
@@ -87,23 +86,63 @@ module.exports = {
                     "reactorToken": usertoken,
                     "postToken": postToken,
                     "posterToken": posterToken,
-                    "status": status,
+                    "status": "active",
 
                 });
-
-
-
-                await newPost.save();
+                await newReaction.save();
 
                 res.send({
                     "type": "success",
-                    "data": newPost,
+                    "data": newReaction,
                 })
-
-
             }
         } catch (error) {
 
+        }
+
+    },
+
+    unReact: async (req, res) => {
+        try {
+            let proceed = true;
+            const { token } = req.body;
+            const { usertoken, sessiontoken } = req.headers;
+
+            if (await utils.authinticate(usertoken, sessiontoken) === false) {
+                proceed = false;
+                res.send({
+                    "type": "error",
+                    "data": {
+                        "msg" : "Mismatched !"
+                    },
+                })
+            }
+
+            if (proceed) {
+                await Reaction.findOneAndUpdate(
+                    { 'token': token },
+                    {
+                        $set: {
+                            'status': "inactive"
+                        }
+                    },
+                    { new: true }
+                );
+
+                let reactionDetails = await Reaction.find({
+                    'token' : token
+                })
+
+                res.send({
+                    "type": "success",
+                    "data": reactionDetails,
+                })
+            }
+        } catch (error) {
+            res.send({
+                "type": "error",
+                "data": error,
+            })
         }
 
     },
