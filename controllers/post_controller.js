@@ -1,7 +1,7 @@
 const Post = require('../models/post');
 const Reaction = require('../models/reaction');
-const Session = require('../models/session');
 const utils = require('../helpers/utils');
+const Comment = require('../models/comment');
 
 module.exports = {
     createPost: async (req, res) => {
@@ -136,6 +136,50 @@ module.exports = {
                 res.send({
                     "type": "success",
                     "data": reactionDetails,
+                })
+            }
+        } catch (error) {
+            res.send({
+                "type": "error",
+                "data": error,
+            })
+        }
+
+    },
+
+    comment: async (req, res) => {
+        try {
+            let proceed = true;
+            const { content, postToken, posterToken, commenterToken} = req.body;
+            const { usertoken, sessiontoken } = req.headers;
+
+            if (await utils.authinticate(usertoken, sessiontoken) === false) {
+                proceed = false;
+                res.send({
+                    "type": "error",
+                    "data": {
+                        "msg" : "Mismatched !"
+                    },
+                })
+            }
+
+            if (proceed) {
+                let newComment = Comment({
+                    "token": utils.makeToken({
+                        "label": "CT"
+                    }),
+                    "content": content, 
+                    "postToken": postToken,
+                    "posterToken": posterToken,
+                    "commenterToken": commenterToken,
+                    "status": "active",
+
+                });
+                await newComment.save();
+
+                res.send({
+                    "type": "Insersion successful",
+                    "data": newComment,
                 })
             }
         } catch (error) {

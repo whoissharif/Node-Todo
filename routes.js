@@ -14,6 +14,8 @@ router.post('/account/post/react', post_controller.react);
 
 router.post('/account/post/unreact', post_controller.unReact);
 
+router.post('/account/post/comment', post_controller.comment);
+
 router.post('/account/logout', userController.logout);
 
 router.post('/send/request', friendship_transaction_controller.sendFriendRequest);
